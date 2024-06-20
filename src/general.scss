@@ -22,14 +22,25 @@ calcite-navigation-logo {
   display: none;
 }
 
-.player-loader {
-  padding-top: 0px;
-  padding-bottom: 20px;
-}
-
 #user-menu {
   position: absolute;
   top: 65px;
   right: 0px;
   z-index: 1;
+}
+
+.fire {
+  position: absolute;
+
+  background-image: url("./../fire.gif");
+  background-size: contain;
+  width: 40px;
+  height: 40px;
+  /* border-radius: 50%; */
+
+  /* pointer-events: none; */
+  text-align: center;
+
+  pointer-events: none;
+  opacity: 0.65;
 }
