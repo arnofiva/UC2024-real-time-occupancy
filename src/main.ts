@@ -11,7 +11,7 @@ console.log(`Using ArcGIS Maps SDK for JavaScript v${kernel.fullVersion}`);
 
 const params = new URLSearchParams(document.location.search.slice(1));
 
-const webSceneId = params.get("webscene") || "91b46c2b162c48dba264b2190e1dbcff";
+const webSceneId = params.get("webscene") || "c43ea7331abe4c91a0e36646b39c1ceb";
 
 const map = new WebScene({
   portalItem: {

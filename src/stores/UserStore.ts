@@ -10,6 +10,7 @@ import PortalUser from "@arcgis/core/portal/PortalUser";
 
 const info = new OAuthInfo({
   appId: "KojZjH6glligLidj",
+  portalUrl: "https://3dgis.maps.arcgis.com/",
   popup: true,
   popupCallbackUrl: `${document.location.origin}${document.location.pathname}oauth-callback-api.html`,
 });
