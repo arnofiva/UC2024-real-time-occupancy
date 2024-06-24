@@ -9,9 +9,15 @@ import { watch } from "@arcgis/core/core/reactiveUtils";
 import { Point } from "@arcgis/core/geometry";
 import { distance } from "@arcgis/core/geometry/geometryEngine";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
-import StreamLayer from "@arcgis/core/layers/StreamLayer";
 import SceneView from "@arcgis/core/views/SceneView";
 import StreamLayerView from "@arcgis/core/views/layers/StreamLayerView";
+import {
+  createClientSideFeatureLayer,
+  createClientSideStreamLayer,
+  csvPoints,
+  queryFeatures,
+} from "../layers";
+import { StreamPlayer } from "../stream";
 import UserStore from "./UserStore";
 
 type AppStoreProperties = Pick<AppStore, "view">;
@@ -20,6 +26,20 @@ type Fire = {
   element: HTMLDivElement;
   point: Point;
 };
+
+async function createStreamLayer(layer: FeatureLayer) {
+  // return streamLayer;
+  const features = await queryFeatures(csvPoints, ["start_time"]);
+
+  const player = new StreamPlayer({
+    timeField: "start_time",
+    features,
+  });
+
+  player.receptor = createClientSideStreamLayer(layer);
+
+  return player;
+}
 
 @subclass("arcgis-core-template.AppStore")
 class AppStore extends Accessor {
@@ -32,6 +52,9 @@ class AppStore extends Accessor {
   @property({ constructOnly: true })
   userStore = new UserStore();
 
+  @property()
+  private player: StreamPlayer;
+
   private fires = [] as Fire[];
 
   constructor(props: AppStoreProperties) {
@@ -40,15 +63,28 @@ class AppStore extends Accessor {
     const view = props.view;
 
     view.when(async () => {
-      const streamLayer = new StreamLayer({
-        url: "https://us-iot.arcgis.com/bc1qjuyagnrebxvh/bc1qjuyagnrebxvh/streams/arcgis/rest/services/Zurich__ETH_Lee_EM_activefeed_WM/StreamServer",
-      });
-
       await this.map.loadAll();
 
-      this.map.add(streamLayer);
+      const slides = this.map.presentation.slides;
+      if (slides.length) {
+        const slide = slides.getItemAt(0);
+        slide.applyTo(view, { animate: false });
+      }
 
-      this.view.whenLayerView(streamLayer).then((lv) => this.addStream(lv));
+      const layer = this.map.allLayers.find(
+        ({ title }) => title === "Lee building - occupancy",
+      ) as FeatureLayer;
+
+      const streamPlayer = await createStreamLayer(layer);
+
+      streamPlayer.start();
+      this.player = streamPlayer;
+
+      const stream = streamPlayer.receptor;
+
+      this.map.add(stream);
+
+      this.view.whenLayerView(stream).then((lv) => this.addStream(lv));
     });
 
     view.addHandles(
@@ -66,30 +102,8 @@ class AppStore extends Accessor {
       ({ title }) => title === "Lee building - occupancy",
     ) as FeatureLayer;
 
-    const geometryType = layer.geometryType;
-    if (geometryType === "mesh" || geometryType === "multipatch") {
-      throw new Error("Mesh and multipatch not supported");
-    }
-
-    const query = layer.createQuery();
-    query.returnGeometry = true;
-    query.returnZ = true;
-    const features = (await layer.queryFeatures(query)).features;
-
-    const roomsClientSide = new FeatureLayer({
-      title: `${layer.title} (client-side)`,
-      fields: layer.fields,
-      objectIdField: layer.objectIdField,
-      elevationInfo: layer.elevationInfo,
-      hasZ: layer.hasZ,
-      spatialReference: layer.spatialReference,
-      geometryType,
-      popupTemplate: layer.popupTemplate,
-      source: features,
-      renderer: layer.renderer,
-      definitionExpression: "0 < people",
-      // opacity: layer.opacity
-    });
+    const features = await queryFeatures(layer);
+    const roomsClientSide = createClientSideFeatureLayer(layer, features);
 
     const nameToRoomMap = new Map<string, Graphic>();
     features.forEach((f) => {
