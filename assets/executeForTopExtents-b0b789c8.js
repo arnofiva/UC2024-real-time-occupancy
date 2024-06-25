@@ -1,1 +1,0 @@
-import{c7 as m,g0 as n,ch as c}from"./index-6a39f5fd.js";import{d as p}from"./queryTopFeatures-b5da7a7c.js";import"./query-549555fc.js";import"./pbfQueryUtils-da01cf7e.js";import"./pbf-b8e7c3b5.js";async function d(o,r,a){const e=m(o),t=await p(e,n.from(r),{...a});return{count:t.data.count,extent:c.fromJSON(t.data.extent)}}export{d as executeForTopExtents};
