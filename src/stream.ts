@@ -6,10 +6,6 @@ import {
 } from "@arcgis/core/core/accessorSupport/decorators";
 import StreamLayer from "@arcgis/core/layers/StreamLayer";
 
-export const streamLayer = new StreamLayer({
-  url: "https://us-iot.arcgis.com/bc1qjuyagnrebxvh/bc1qjuyagnrebxvh/streams/arcgis/rest/services/Zurich__ETH_Lee_EM_activefeed_WM/StreamServer",
-});
-
 const SPEED_FACTOR = 7.5;
 
 type StreamPlayerProperties = Pick<StreamPlayer, "timeField" | "features">;
@@ -62,7 +58,10 @@ export class StreamPlayer extends Accessor {
         if (timeToNext < 0) {
           const receptor = this.receptor;
           if (receptor) {
-            receptor.sendMessageToClient(next);
+            receptor.sendMessageToClient({
+              type: "features",
+              features: [next],
+            });
           }
           const objectId = next.getObjectId();
           console.log(`[${index}] event`, startTimeDiffMS, { next, objectId });
