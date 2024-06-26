@@ -65,12 +65,6 @@ class AppStore extends Accessor {
     view.when(async () => {
       await this.map.loadAll();
 
-      const slides = this.map.presentation.slides;
-      if (slides.length) {
-        const slide = slides.getItemAt(0);
-        slide.applyTo(view, { animate: false });
-      }
-
       const layer = this.map.allLayers.find(
         ({ title }) => title === "Lee building - occupancy",
       ) as FeatureLayer;
