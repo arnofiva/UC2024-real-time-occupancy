@@ -1,9 +1,6 @@
 export default {
-  server: {
-    port: 3000
-  },
+  server: { port: 3000 },
   base: "./",
-  build: {
-    target: "es2020",
-  }
-}
+  build: { target: "esnext" },
+  optimizeDeps: { esbuildOptions: { target: "esnext" } },
+};

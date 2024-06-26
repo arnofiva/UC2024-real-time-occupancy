@@ -1,24 +1,17 @@
 import Graphic from "@arcgis/core/Graphic";
 import WebScene from "@arcgis/core/WebScene";
 import Accessor from "@arcgis/core/core/Accessor";
-import {
-  property,
-  subclass,
-} from "@arcgis/core/core/accessorSupport/decorators";
+import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
 import { watch } from "@arcgis/core/core/reactiveUtils";
 import { Point } from "@arcgis/core/geometry";
 import { distance } from "@arcgis/core/geometry/geometryEngine";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import SceneView from "@arcgis/core/views/SceneView";
 import StreamLayerView from "@arcgis/core/views/layers/StreamLayerView";
-import {
-  createClientSideFeatureLayer,
-  createClientSideStreamLayer,
-  csvPoints,
-  queryFeatures,
-} from "../layers";
+import { createClientSideFeatureLayer, createClientSideStreamLayer, csvPoints, queryFeatures } from "../layers";
 import { StreamPlayer } from "../stream";
 import UserStore from "./UserStore";
+import { FireRenderNode } from "./FireRenderNode";
 
 type AppStoreProperties = Pick<AppStore, "view">;
 
@@ -55,7 +48,7 @@ class AppStore extends Accessor {
   @property()
   private player: StreamPlayer;
 
-  private fires = [] as Fire[];
+  private _fires: FireRenderNode = null!;
 
   constructor(props: AppStoreProperties) {
     super(props);
@@ -63,11 +56,10 @@ class AppStore extends Accessor {
     const view = props.view;
 
     view.when(async () => {
+      this._fires = new FireRenderNode({ view });
       await this.map.loadAll();
 
-      const layer = this.map.allLayers.find(
-        ({ title }) => title === "Lee building - occupancy",
-      ) as FeatureLayer;
+      const layer = this.map.allLayers.find(({ title }) => title === "Lee building - occupancy") as FeatureLayer;
 
       const streamPlayer = await createStreamLayer(layer);
 
@@ -80,21 +72,10 @@ class AppStore extends Accessor {
 
       this.view.whenLayerView(stream).then((lv) => this.addStream(lv));
     });
-
-    view.addHandles(
-      watch(
-        () => view.camera,
-        () => {
-          this.updateFires();
-        },
-      ),
-    );
   }
 
   private async addStream(streamLV: StreamLayerView) {
-    const layer = this.map.allLayers.find(
-      ({ title }) => title === "Lee building - occupancy",
-    ) as FeatureLayer;
+    const layer = this.map.allLayers.find(({ title }) => title === "Lee building - occupancy") as FeatureLayer;
 
     const features = await queryFeatures(layer);
     const roomsClientSide = createClientSideFeatureLayer(layer, features);
@@ -158,53 +139,15 @@ class AppStore extends Accessor {
     this.view.on("immediate-click", async (e) => {
       if (shift) {
         const hitTest = await this.view.hitTest(e);
-        const result = hitTest.results.find(
-          (result) => result.type === "graphic",
-        );
+        const result = hitTest.results.find((result) => result.type === "graphic");
         if (result) {
-          this.addFires(result.mapPoint);
+          this._fires.addFire(result.mapPoint);
         } else if (hitTest.ground.mapPoint) {
-          this.addFires(hitTest.ground.mapPoint);
+          this._fires.addFire(hitTest.ground.mapPoint);
         }
       }
     });
   }
-
-  private addFires(point: Point) {
-    this.addFire(point);
-    this.addFire(point);
-    this.updateFires();
-  }
-
-  private addFire(point: Point) {
-    const element = document.createElement("div");
-    element.classList.add("fire");
-    this.fires.push({
-      element,
-      point,
-    });
-    document.body.appendChild(element);
-  }
-
-  updateFires = () => {
-    this.fires.forEach((fire, idx) => {
-      const screenPoint = this.view.toScreen(fire.point);
-      if (screenPoint) {
-        const d = distance(this.view.camera.position, fire.point);
-
-        const size = Math.min(100, 6000 / d);
-
-        fire.element.style.height = `${size}px`;
-        fire.element.style.width = `${size}px`;
-
-        fire.element.style.top = `${screenPoint.y - size + 65}px`;
-        fire.element.style.left = `${screenPoint.x - size / 2}px`;
-      }
-      const rotate = -this.view.camera.heading - 90 * (idx % 2);
-      const tilt = -(this.view.camera.tilt - 90);
-      fire.element.style.transform = `rotateX(${tilt}deg) rotateY(${rotate}deg)`;
-    });
-  };
 }
 
 export default AppStore;

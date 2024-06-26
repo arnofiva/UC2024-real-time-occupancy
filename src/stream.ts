@@ -1,9 +1,6 @@
 import Graphic from "@arcgis/core/Graphic";
 import Accessor from "@arcgis/core/core/Accessor";
-import {
-  property,
-  subclass,
-} from "@arcgis/core/core/accessorSupport/decorators";
+import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
 import StreamLayer from "@arcgis/core/layers/StreamLayer";
 
 const SPEED_FACTOR = 7.5;
@@ -64,12 +61,12 @@ export class StreamPlayer extends Accessor {
             });
           }
           const objectId = next.getObjectId();
-          console.log(`[${index}] event`, startTimeDiffMS, { next, objectId });
+          // console.log(`[${index}] event`, startTimeDiffMS, { next, objectId });
           index++;
 
           this.timeoutId = setTimeout(step);
         } else {
-          console.log(`[${index}] idle for ${timeToNext / 1000}s`);
+          // console.log(`[${index}] idle for ${timeToNext / 1000}s`);
           this.timeoutId = setTimeout(step, timeToNext);
         }
       } else {
