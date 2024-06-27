@@ -21,6 +21,7 @@ import {
   uv,
 } from "three/examples/jsm/nodes/Nodes";
 import WebGPURenderer from "three/examples/jsm/renderers/webgpu/WebGPURenderer";
+// import WebGLState from "three/examples/jsm/renderers/webgl/utils/WebGLState";
 
 import { Point } from "@arcgis/core/geometry";
 import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
@@ -56,7 +57,7 @@ export class FireRenderNode extends RenderNode {
     this._renderer.autoClear = false;
   }
 
-  render(): ManagedFBO {
+  render(inputs: ManagedFBO[]): ManagedFBO {
     const viewport = this.camera.viewport;
 
     const camera = this.camera;
@@ -73,12 +74,30 @@ export class FireRenderNode extends RenderNode {
     this._ambient.color = new Color(light.ambient.color[0], light.ambient.color[1], light.ambient.color[2]);
 
     this._renderer.setDrawingBufferSize(viewport[2], viewport[3], window.devicePixelRatio);
-    // this._renderer.resetState();
+
     const output = this.bindRenderTarget();
+    this.resetWebGLState();
+
     this._renderer._renderScene(this._scene, this._camera, false);
 
     this.requestRender();
     return output;
+  }
+
+  resetWebGLState(): void {
+    const gl = this.gl;
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.ONE, gl.ONE);
+    gl.depthFunc(gl.LEQUAL);
+
+    const state: any = this._renderer.backend.state;
+    for (const slot in state.currentBoundTextures) {
+      const value = state.currentBoundTextures[slot];
+      if (typeof value === "object" && "texture" in value && "type" in value) {
+        gl.activeTexture(Number(slot));
+        gl.bindTexture(value.type, value.texture);
+      }
+    }
   }
 
   addFire(point: Point) {
