@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@arcgis/core": "4.30",
-    "@esri/calcite-components": "1.9.2",
+    "@esri/calcite-components": "2.8.5",
     "@types/three": "^0.165.0",
     "three": "^0.165.0"
   },

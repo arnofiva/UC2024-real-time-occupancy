@@ -2,12 +2,13 @@ import WebScene from "@arcgis/core/WebScene";
 import * as kernel from "@arcgis/core/kernel";
 import SceneView from "@arcgis/core/views/SceneView";
 import "@esri/calcite-components/dist/calcite/calcite.css";
+import { setAssetPath } from "@esri/calcite-components/dist/components";
 import App from "./compontents/App";
 import AppStore from "./stores/AppStore";
 
 console.log(`Using ArcGIS Maps SDK for JavaScript v${kernel.fullVersion}`);
 
-// setAssetPath("https://js.arcgis.com/calcite-components/1.0.0-beta.77/assets");
+setAssetPath("https://js.arcgis.com/calcite-components/2.8.5/assets");
 
 const params = new URLSearchParams(document.location.search.slice(1));
 
