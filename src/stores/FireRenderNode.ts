@@ -7,6 +7,7 @@ import {
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
+  Texture,
   TextureLoader,
   Vector3,
 } from "three";
@@ -98,6 +99,11 @@ export class FireRenderNode extends RenderNode {
         gl.bindTexture(value.type, value.texture);
       }
     }
+
+    for (const flag in state.enabled) {
+      const value = Boolean(state.enabled[flag]);
+      value ? gl.enable(Number(flag)) : gl.disable(Number(flag));
+    }
   }
 
   addFire(point: Point) {
@@ -106,25 +112,25 @@ export class FireRenderNode extends RenderNode {
       return;
     }
 
-    const textureLoader = new TextureLoader();
-    const map = textureLoader.load("textures/opengameart/smoke1.png");
-
     // create nodes
 
     const lifeRange = range(0.1, 1);
-    const offsetRange = range(new Vector3(-0.02, 0.03, -0.02), new Vector3(0.02, 0.05, 0.02));
+    const offsetRange = range(
+      new Vector3(-2 * scale, -2 * scale, 3 * scale),
+      new Vector3(2 * scale, 2 * scale, 5 * scale),
+    );
 
     const timer = timerLocal(0.2, 1 /*100000*/); // @TODO: need to work with 64-bit precision
 
     const lifeTime = timer.mul(lifeRange).mod(1);
-    const scaleRange = range(0.003, 0.02);
-    const rotateRange = range(0.001, 0.04);
+    const scaleRange = range(0.3 * scale, 2 * scale);
+    const rotateRange = range(0.1 * scale, 4 * scale);
 
     const life = lifeTime.div(lifeRange);
 
     const fakeLightEffect = positionLocal.y.oneMinus().max(0.2);
 
-    const textureNode = texture(map, uv().rotateUV(timer.mul(rotateRange)));
+    const textureNode = texture(this._smoke, uv().rotateUV(timer.mul(rotateRange)));
     const opacityNode = textureNode.a.mul(life.oneMinus());
     const smokeColor = mix(color(0x2c1501), color(0x222222), positionLocal.y.mul(3).clamp());
 
@@ -142,14 +148,17 @@ export class FireRenderNode extends RenderNode {
     smokeInstancedSprite.scale.setScalar(400);
     smokeInstancedSprite.position.x = renderPos[0];
     smokeInstancedSprite.position.y = renderPos[1];
-    smokeInstancedSprite.position.z = renderPos[2];
+    smokeInstancedSprite.position.z = renderPos[2] + 100 * scale;
     this._scene.add(smokeInstancedSprite);
 
     //
 
     const fireNodeMaterial = new SpriteNodeMaterial();
     fireNodeMaterial.colorNode = mix(color(0xb72f17), color(0xb72f17), life);
-    fireNodeMaterial.positionNode = range(new Vector3(-0.01, 0.01, -0.01), new Vector3(0.01, 0.02, 0.01)).mul(lifeTime);
+    fireNodeMaterial.positionNode = range(
+      new Vector3(-1 * scale, -1 * scale, 1 * scale),
+      new Vector3(1 * scale, 1 * scale, 2 * scale),
+    ).mul(lifeTime);
     fireNodeMaterial.scaleNode = smokeNodeMaterial.scaleNode;
     fireNodeMaterial.opacityNode = opacityNode;
     fireNodeMaterial.blending = AdditiveBlending;
@@ -160,7 +169,7 @@ export class FireRenderNode extends RenderNode {
     fireInstancedSprite.scale.setScalar(400);
     fireInstancedSprite.position.x = renderPos[0];
     fireInstancedSprite.position.y = renderPos[1];
-    fireInstancedSprite.position.z = renderPos[2] - 1;
+    fireInstancedSprite.position.z = renderPos[2];
     fireInstancedSprite.renderOrder = 1;
     this._scene.add(fireInstancedSprite);
     this.produces = "transparent-color";
@@ -171,4 +180,7 @@ export class FireRenderNode extends RenderNode {
   private _camera = new PerspectiveCamera();
   private _ambient = new AmbientLight(0xffffff, 0.5);
   private _sun = new DirectionalLight(0xffffff, 0.5);
+  private _smoke = new TextureLoader().load("textures/opengameart/smoke1.png");
 }
+
+const scale = 0.01;
