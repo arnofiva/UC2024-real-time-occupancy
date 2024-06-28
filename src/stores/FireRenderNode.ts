@@ -7,16 +7,15 @@ import {
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
-  Texture,
   TextureLoader,
   Vector3,
 } from "three";
 import {
+  SpriteNodeMaterial,
   color,
   mix,
   positionLocal,
   range,
-  SpriteNodeMaterial,
   texture,
   timerLocal,
   uv,
@@ -24,8 +23,8 @@ import {
 import WebGPURenderer from "three/examples/jsm/renderers/webgpu/WebGPURenderer";
 // import WebGLState from "three/examples/jsm/renderers/webgl/utils/WebGLState";
 
-import { Point } from "@arcgis/core/geometry";
 import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
+import { Point } from "@arcgis/core/geometry";
 import { toRenderCoordinates } from "@arcgis/core/views/3d/webgl";
 import ManagedFBO from "@arcgis/core/views/3d/webgl/ManagedFBO";
 import RenderNode from "@arcgis/core/views/3d/webgl/RenderNode";
@@ -34,8 +33,8 @@ import RenderNode from "@arcgis/core/views/3d/webgl/RenderNode";
 export class FireRenderNode extends RenderNode {
   initialize(): void {
     this.consumes.required.push("transparent-color");
-    this.produces = "disabled"!;
-    this._renderer = new WebGPURenderer({ forceWebGL: true, context: this.gl, premultipliedAlpha: false });
+    this.produces = "disabled"! as any;
+    this._renderer = new WebGPURenderer({ forceWebGL: true, context: this.gl, premultipliedAlpha: false } as any);
 
     // prevent three.js from clearing the buffers provided by the ArcGIS JS API.
     this._renderer.autoClearDepth = this._renderer.autoClearStencil = this._renderer.autoClearColor = false;
@@ -91,7 +90,7 @@ export class FireRenderNode extends RenderNode {
     gl.blendFunc(gl.ONE, gl.ONE);
     gl.depthFunc(gl.LEQUAL);
 
-    const state: any = this._renderer.backend.state;
+    const state: any = (this._renderer.backend as any).state;
     for (const slot in state.currentBoundTextures) {
       const value = state.currentBoundTextures[slot];
       if (typeof value === "object" && "texture" in value && "type" in value) {
