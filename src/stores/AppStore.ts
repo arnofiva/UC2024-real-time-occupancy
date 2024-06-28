@@ -2,9 +2,7 @@ import Graphic from "@arcgis/core/Graphic";
 import WebScene from "@arcgis/core/WebScene";
 import Accessor from "@arcgis/core/core/Accessor";
 import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
-import { watch } from "@arcgis/core/core/reactiveUtils";
 import { Point } from "@arcgis/core/geometry";
-import { distance } from "@arcgis/core/geometry/geometryEngine";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import SceneView from "@arcgis/core/views/SceneView";
 import StreamLayerView from "@arcgis/core/views/layers/StreamLayerView";
@@ -57,6 +55,7 @@ class AppStore extends Accessor {
 
     view.when(async () => {
       this._fires = new FireRenderNode({ view });
+      this._addEventHandlers();
       await this.map.loadAll();
 
       const layer = this.map.allLayers.find(({ title }) => title === "Lee building - occupancy") as FeatureLayer;
@@ -107,7 +106,9 @@ class AppStore extends Accessor {
         console.log("No room found for " + name);
       }
     });
+  }
 
+  private _addEventHandlers(): void {
     const slides = this.map.presentation.slides;
 
     let shift = false;
