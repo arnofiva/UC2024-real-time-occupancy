@@ -8,8 +8,8 @@ import SceneView from "@arcgis/core/views/SceneView";
 import StreamLayerView from "@arcgis/core/views/layers/StreamLayerView";
 import { createClientSideFeatureLayer, createClientSideStreamLayer, csvPoints, queryFeatures } from "../layers";
 import { StreamPlayer } from "../stream";
-import UserStore from "./UserStore";
 import { FireRenderNode } from "./FireRenderNode";
+import UserStore from "./UserStore";
 
 type AppStoreProperties = Pick<AppStore, "view">;
 
@@ -123,9 +123,11 @@ class AppStore extends Accessor {
         if (0 < index && index <= slides.length) {
           const slide = slides.getItemAt(index - 1);
 
-          this.view.goTo(slide.viewpoint, {
-            // speedFactor: 0.2
-          });
+          slide.applyTo(this.view);
+
+          // this.view.goTo(slide.viewpoint, {
+          //   speedFactor: 0.2
+          // });
         }
       }
     };
