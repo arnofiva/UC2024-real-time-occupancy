@@ -88,6 +88,16 @@ class AppStore extends Accessor {
     streamLV.layer.visible = false;
     this.map.add(roomsClientSide);
 
+    this.map.presentation.slides
+      .map((s) => s.visibleLayers)
+      .forEach((visibleLayers) => {
+        visibleLayers.forEach((visibleLayer) => {
+          if (visibleLayer.id === layer.id) {
+            visibleLayer.id = roomsClientSide.id;
+          }
+        });
+      });
+
     streamLV.on("data-received", async (e) => {
       const name = e.attributes["NAME"];
 
