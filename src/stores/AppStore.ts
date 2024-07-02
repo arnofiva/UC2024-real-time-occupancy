@@ -7,8 +7,9 @@ import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import SceneView from "@arcgis/core/views/SceneView";
 import StreamLayerView from "@arcgis/core/views/layers/StreamLayerView";
 import { createClientSideFeatureLayer, createClientSideStreamLayer, csvPoints, queryFeatures } from "../layers";
-import { StreamPlayer } from "../stream";
+import StreamPlayer from "../stream";
 import { FireRenderNode } from "./FireRenderNode";
+import GoLiveStore from "./GoLiveStore";
 import UserStore from "./UserStore";
 
 type AppStoreProperties = Pick<AppStore, "view">;
@@ -43,9 +44,13 @@ class AppStore extends Accessor {
   @property({ constructOnly: true })
   userStore = new UserStore();
 
-  @property()
-  private player: StreamPlayer;
+  @property({})
+  goLiveStore: GoLiveStore;
 
+  @property()
+  player: StreamPlayer;
+
+  @property()
   private _fires: FireRenderNode = null!;
 
   constructor(props: AppStoreProperties) {
@@ -60,12 +65,12 @@ class AppStore extends Accessor {
 
       const layer = this.map.allLayers.find(({ title }) => title === "Lee building - occupancy") as FeatureLayer;
 
-      const streamPlayer = await createStreamLayer(layer);
+      const player = await createStreamLayer(layer);
+      this.goLiveStore = new GoLiveStore({ view, player, fires: this._fires });
 
-      streamPlayer.start();
-      this.player = streamPlayer;
+      this.player = player;
 
-      const stream = streamPlayer.receptor;
+      const stream = player.receptor;
 
       this.map.add(stream);
 

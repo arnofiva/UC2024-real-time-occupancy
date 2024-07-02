@@ -106,6 +106,10 @@ export class FireRenderNode extends RenderNode {
   }
 
   addFire(point: Point) {
+    const { x, y, z } = point;
+
+    console.log("Add Fire", { x, y, z });
+
     var renderPos = [0, 0, 0];
     if (!toRenderCoordinates(this.view, [point.x, point.y, point.z ?? 0], 0, point.spatialReference, renderPos, 0, 1)) {
       return;

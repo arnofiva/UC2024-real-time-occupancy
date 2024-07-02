@@ -3,12 +3,12 @@ import Accessor from "@arcgis/core/core/Accessor";
 import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
 import StreamLayer from "@arcgis/core/layers/StreamLayer";
 
-const SPEED_FACTOR = 7.5;
+const SPEED_FACTOR = 15;
 
 type StreamPlayerProperties = Pick<StreamPlayer, "timeField" | "features">;
 
 @subclass()
-export class StreamPlayer extends Accessor {
+class StreamPlayer extends Accessor {
   @property({ constructOnly: true })
   timeField: string;
 
@@ -22,6 +22,9 @@ export class StreamPlayer extends Accessor {
   get running() {
     return this.timeoutId !== null;
   }
+
+  @property()
+  now = 0;
 
   @property()
   private timeoutId: number | null = null;
@@ -38,6 +41,9 @@ export class StreamPlayer extends Accessor {
     let firstStartTimeMS: number | null = null;
 
     const step = () => {
+      const now = Date.now();
+      this.now = now;
+
       if (index < this.features.length) {
         const next = this.features[index];
         const startTimeMS = next.getAttribute(this.timeField) as number;
@@ -47,7 +53,7 @@ export class StreamPlayer extends Accessor {
         }
 
         const startTimeDiffMS = (startTimeMS - firstStartTimeMS) / SPEED_FACTOR;
-        const now = Date.now();
+
         const nowDiffMS = now - startNowMS;
 
         const timeToNext = startTimeDiffMS - nowDiffMS;
@@ -67,10 +73,10 @@ export class StreamPlayer extends Accessor {
           this.timeoutId = setTimeout(step);
         } else {
           // console.log(`[${index}] idle for ${timeToNext / 1000}s`);
-          this.timeoutId = setTimeout(step, timeToNext);
+          this.timeoutId = setTimeout(step, Math.min(timeToNext, 1000));
         }
       } else {
-        // call run() to loop
+        this.timeoutId = setTimeout(step, 1000);
       }
     };
 
@@ -89,3 +95,5 @@ export class StreamPlayer extends Accessor {
     console.log("Destroyed...");
   }
 }
+
+export default StreamPlayer;

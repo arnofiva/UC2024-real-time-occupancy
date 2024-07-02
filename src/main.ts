@@ -5,6 +5,7 @@ import "@esri/calcite-components/dist/calcite/calcite.css";
 import { setAssetPath } from "@esri/calcite-components/dist/components";
 import App from "./compontents/App";
 import AppStore from "./stores/AppStore";
+import { setViewUI } from "./utils";
 
 console.log(`Using ArcGIS Maps SDK for JavaScript v${kernel.fullVersion}`);
 
@@ -27,7 +28,7 @@ const view = new SceneView({
   container: "viewDiv",
   map,
 });
-
+setViewUI(view.ui);
 (window as any)["view"] = view;
 
 const store = new AppStore({

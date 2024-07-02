@@ -29,6 +29,11 @@ calcite-navigation-logo {
   z-index: 1;
 }
 
+.live-panel {
+  width: 300px;
+  height: 250px;
+}
+
 .fire {
   position: absolute;
 
@@ -43,4 +48,53 @@ calcite-navigation-logo {
 
   pointer-events: none;
   opacity: 0.65;
+}
+
+.clock {
+  cursor: pointer;
+  width: 220px;
+  background-color: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-content: space-between;
+  min-width: 200px;
+  min-height: 75px;
+  padding: 10px;
+
+  calcite-button {
+    margin-top: 22px;
+  }
+
+  .clock-text-container {
+    font-weight: bold;
+    font-size: 29px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+
+    .time-ss {
+      font-size: 0.8em;
+    }
+  }
+  .live-message {
+    display: flex;
+    align-items: center;
+    height: 17px;
+    --calcite-ui-icon-color: red;
+
+    .live-label {
+      position: relative;
+      top: 1px;
+      margin-right: 5px;
+    }
+  }
+  .simulated-time-info {
+    margin-top: 10px;
+    display: flex;
+
+    .simulated-time-label {
+      margin-left: 5px;
+    }
+  }
 }
