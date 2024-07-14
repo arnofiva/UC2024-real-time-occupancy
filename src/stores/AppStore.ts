@@ -68,7 +68,6 @@ class AppStore extends Accessor {
       const layer = this.map.allLayers.find(({ title }) => title === "Lee building - occupancy") as FeatureLayer;
 
       const player = await createStreamLayer(layer);
-      this.goLiveStore = new GoLiveStore({ view, player, fires: this._fires });
 
       this.player = player;
 
@@ -76,7 +75,10 @@ class AppStore extends Accessor {
 
       this.map.add(stream);
 
-      this.view.whenLayerView(stream).then((lv) => this.addStream(lv));
+      const lv = await this.view.whenLayerView(stream);
+      await this.addStream(lv);
+
+      this.goLiveStore = new GoLiveStore({ view, player, fires: this._fires });
     });
   }
 

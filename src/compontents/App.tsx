@@ -31,7 +31,11 @@ class App extends Widget<AppProperties> {
         </div>
       );
     } else {
-      return <div></div>;
+      return (
+        <div>
+          <Header store={this.store}></Header>
+        </div>
+      );
     }
   }
 }

@@ -24,8 +24,8 @@ type GoLiveProperties = Pick<GoLive, "store">;
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   timeStyle: "medium",
-  timeZone: "UTC",
-  hour12: false,
+  timeZone: "PST",
+  hour12: true,
 });
 
 function dateToTimeString(date: Date): {
@@ -33,8 +33,11 @@ function dateToTimeString(date: Date): {
   seconds: string;
 } {
   const timeParts = formatter.formatToParts(date).map((part) => part.value);
+
+  console.log({ timeParts });
+
   const hoursMinutes = timeParts.slice(0, 3).join("");
-  const seconds = timeParts.slice(3, 5).join("");
+  const seconds = timeParts.slice(3, 7).join("").toLowerCase();
   return { hoursMinutes, seconds };
 }
 
