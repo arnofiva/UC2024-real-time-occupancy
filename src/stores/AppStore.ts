@@ -63,6 +63,8 @@ class AppStore extends Accessor {
       this._addEventHandlers();
       await this.map.loadAll();
 
+      document.title = this.map.portalItem.title;
+
       const layer = this.map.allLayers.find(({ title }) => title === "Lee building - occupancy") as FeatureLayer;
 
       const player = await createStreamLayer(layer);
@@ -82,6 +84,7 @@ class AppStore extends Accessor {
     const layer = this.map.allLayers.find(({ title }) => title === "Lee building - occupancy") as FeatureLayer;
 
     const features = await queryFeatures(layer);
+
     const roomsClientSide = createClientSideFeatureLayer(layer, features);
 
     const nameToRoomMap = new Map<string, Graphic>();
@@ -89,21 +92,7 @@ class AppStore extends Accessor {
       nameToRoomMap.set(f.attributes["NAME"], f);
     });
 
-    layer.visible = false;
-    streamLV.layer.visible = false;
-    this.map.add(roomsClientSide);
-
-    this.map.presentation.slides
-      .map((s) => s.visibleLayers)
-      .forEach((visibleLayers) => {
-        visibleLayers.forEach((visibleLayer) => {
-          if (visibleLayer.id === layer.id) {
-            visibleLayer.id = roomsClientSide.id;
-          }
-        });
-      });
-
-    streamLV.on("data-received", async (e) => {
+    const updateRoom = async (e: __esri.StreamLayerViewDataReceivedEvent | Graphic) => {
       const name = e.attributes["NAME"];
 
       const graphic = nameToRoomMap.get(name);
@@ -120,7 +109,39 @@ class AppStore extends Accessor {
       } else {
         console.log("No room found for " + name);
       }
-    });
+    };
+
+    await Promise.all(
+      features.map(async (f) => {
+        const name = f.attributes["NAME"];
+        const query = csvPoints.createQuery();
+        query.returnGeometry = false;
+        query.where = `NAME = '${name}'`;
+        query.num = 1;
+        query.orderByFields = ["start_time"];
+        const { features } = await csvPoints.queryFeatures(query);
+
+        if (features.length) {
+          await updateRoom(features[0]);
+        }
+      }),
+    );
+
+    layer.visible = false;
+    streamLV.layer.visible = false;
+    this.map.add(roomsClientSide);
+
+    this.map.presentation.slides
+      .map((s) => s.visibleLayers)
+      .forEach((visibleLayers) => {
+        visibleLayers.forEach((visibleLayer) => {
+          if (visibleLayer.id === layer.id) {
+            visibleLayer.id = roomsClientSide.id;
+          }
+        });
+      });
+
+    streamLV.on("data-received", updateRoom);
   }
 
   private _addEventHandlers(): void {
