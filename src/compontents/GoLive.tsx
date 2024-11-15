@@ -24,7 +24,6 @@ type GoLiveProperties = Pick<GoLive, "store">;
 
 const formatter = new Intl.DateTimeFormat("en-US", {
   timeStyle: "medium",
-  timeZone: "PST",
   hour12: true,
 });
 
